@@ -2225,29 +2225,30 @@ fail:
 static struct wireless_dev *
 wl_cfg80211_add_monitor_if(struct wiphy *wiphy, const char *name)
 {
-#if defined(WL_ENABLE_P2P_IF) || defined(WL_CFG80211_P2P_DEV_IF)
-	WL_ERR(("wl_cfg80211_add_monitor_if: No more support monitor interface\n"));
-	return ERR_PTR(-EOPNOTSUPP);
-#else
-	struct wireless *wdev;
+	struct wireless_dev *wdev;
 	struct net_device* ndev = NULL;
+	int ret;
 
-	dhd_add_monitor(name, &ndev);
+	ret = dhd_add_monitor(name, &ndev);
+	if (ret || !ndev) {
+		WL_ERR(("wl_cfg80211_add_monitor_if: dhd_add_monitor failed (%d)\n", ret));
+		return ERR_PTR(ret ? ret : -ENODEV);
+	}
 
 	wdev = kzalloc(sizeof(*wdev), GFP_KERNEL);
 	if (!wdev) {
 		WL_ERR(("wireless_dev alloc failed! \n"));
-		goto fail;
+		dhd_del_monitor(ndev);
+		return ERR_PTR(-ENOMEM);
 	}
 
 	wdev->wiphy = wiphy;
-	wdev->iftype = iface_type;
+	wdev->iftype = NL80211_IFTYPE_MONITOR;
 	ndev->ieee80211_ptr = wdev;
 	SET_NETDEV_DEV(ndev, wiphy_dev(wiphy));
 
 	WL_DBG(("wl_cfg80211_add_monitor_if net device returned: 0x%p\n", ndev));
 	return ndev->ieee80211_ptr;
-#endif /* WL_ENABLE_P2P_IF || WL_CFG80211_P2P_DEV_IF */
 }
 
 static struct wireless_dev *

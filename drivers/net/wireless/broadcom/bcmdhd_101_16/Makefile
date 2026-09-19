@@ -31,6 +31,7 @@ DHDCFLAGS += -Wall -Werror -Wstrict-prototypes -Dlinux -DLINUX -DBCMDRIVER      
         -DPKT_FILTER_SUPPORT -DEMBEDDED_PLATFORM -DPNO_SUPPORT          \
         -DSEC_ENHANCEMENT
 
+DHDCFLAGS += -Wno-error=implicit-fallthrough -Wno-error=address
 DHDCFLAGS += -DOEM_ANDROID
 
 #####################
